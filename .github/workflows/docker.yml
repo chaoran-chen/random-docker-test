@@ -1,0 +1,31 @@
+name: Docker
+
+on:
+  push:
+    branches:
+  schedule:
+    - cron: '0 7 */2 * *'
+
+jobs:
+  random00:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/chaoran-chen/random-docker-test:random00
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set environment variable "BRANCH"
+        run: |
+          echo "BRANCH=$(eval 'echo $GITHUB_REF | sed s/refs\\/heads\\/// | sed s/\\//__/ ')" >> $GITHUB_ENV
+      - name: Build image
+        run: cd random00 && docker build -t new_image .
+      - name: Login to Github Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Add tags and push
+        run: |
+          docker tag new_image ${{ env.IMAGE_NAME }}-br-${{ env.BRANCH }}
+          docker push ${{ env.IMAGE_NAME }}-br-${{ env.BRANCH }}
+      - name: For "main"
+        if: env.BRANCH == 'main'
+        run: |
+          docker tag new_image ${{ env.IMAGE_NAME }}
+          docker push ${{ env.IMAGE_NAME }}
