@@ -6,6 +6,6 @@ app = FastAPI()
 async def root():
     return {
         "message": "Hello World",
-        "version": 1,
+        "version": 2,
         "status": "running"
     }
